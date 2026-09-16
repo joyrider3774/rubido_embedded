@@ -1,0 +1,6 @@
+name=Rubido
+author=Willems Davy aka Joyrider3774
+description=Chinese checkers peg solitaire game
+bundleID=com.joyrider3774.rubido.embedded
+version=1.0
+buildNumber=1
