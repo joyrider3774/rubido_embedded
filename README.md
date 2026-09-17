@@ -92,7 +92,7 @@ Also depending on the difficulty you had chosen you can either jump horizontally
 | Down | Down in main menu screen. During gameplay move the peg selector Down. |
 | A | Confirm in menu and difficulty selector. During gameplay activate the peg where the peg selector is. If there was a peg already selected it will deselect it |
 | B | return to titlescreen |
-| Up + Down | Show or hide the debug info |
+| (A) + Left + Down | Show or hide the debug info |
 
 ## Credits
 - Graphics are made by me willems davy aka joyrider3774 using gimp

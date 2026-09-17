@@ -2,6 +2,19 @@
 #include "commonvars.h"
 #include "helperfuncs.h"
 
+//A row of an image on its way to the display. Where flash is plain memory an evenly placed
+//row is handed over where it lies, otherwise it is copied into the scratch row first. A 16
+//bit read needs an even address, a core like the Cortex-M0+ faults on an odd one
+static inline const uint16_t* ImageRow(const void* src, uint16_t* scratch, int count)
+{
+#if PLATFORM_DIRECT_FLASH
+    if (((uintptr_t)src & 1) == 0)
+        return (const uint16_t*)src;
+#endif
+    PLATFORM_READ_BYTES((uint8_t*)scratch, src, count * sizeof(uint16_t));
+    return scratch;
+}
+
 //only the skin FORCESKIN picks is part of the build (a 1 bpp buffer forces the black & white one)
 #if FORCESKIN == skinDefault
 #include "images/default/background_RLE565.h"
@@ -39,6 +52,8 @@
 #include "images/black_white/peg_RGB565_LE.h"
 #include "images/black_white/veryeasy1_RLE565.h"
 #include "images/black_white/veryhard1_RLE565.h"
+
+
 #endif
 
 //the game draws the images with the sizes in defines.h, a skin has to keep to them
@@ -220,12 +235,12 @@ void drawImagePart(int x, int y, int sx, int sy, int w, int h, const uint8_t* da
   #endif
     for (int r = r0; r < r1; r++)
     {
-        PLATFORM_READ_BYTES((uint8_t*)row, data + ((sy + r) * dataWidth + sx + c0) * sizeof(uint16_t), cols * sizeof(uint16_t));
+        const uint16_t* prow = ImageRow(data + ((sy + r) * dataWidth + sx + c0) * sizeof(uint16_t), row, cols);
   #if LOVYANGFX
         //true: the values are plain RGB565, the library puts them in display order
-        SCREEN.writePixels(row, cols, true);
+        SCREEN.writePixels(prow, cols, true);
   #else
-        GFX.pushImage(dx, y + r, cols, 1, row);
+        GFX.pushImage(dx, y + r, cols, 1, prow);
   #endif
     }
     SCREEN.endWrite();
