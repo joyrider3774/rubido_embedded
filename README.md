@@ -3,6 +3,13 @@
 
 Rubido is a little chinese checkers or solitaire game with four difficulties.
 
+## Screenshots
+The browser build, at twice the game's own 128x128:
+
+| Title screen | In game |
+| --- | --- |
+| ![Rubido title screen](metadata/screenshots/title.png) | ![Rubido in game](metadata/screenshots/ingame.png) |
+
 ## Devices
 Every [release](https://github.com/joyrider3774/rubido_embedded/releases) has a build for every device. `releases/` is where a build of your own puts them, it is not part of the repository:
 
