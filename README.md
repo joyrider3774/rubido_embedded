@@ -99,6 +99,7 @@ Every [release](https://github.com/joyrider3774/rubido_embedded/releases) has a 
 | [PlayStation Vita](https://en.wikipedia.org/wiki/PlayStation_Vita) | Vita_Rubido.vpk | install it with VitaShell on a Vita with homebrew enabled, or open it in Vita3K |
 | Windows | Windows_Rubido.exe | runs on its own, the best pegs left are saved next to it in Rubido.sav |
 | MS-DOS | DOS_Rubido.zip | unzip RUBIDO.EXE onto a DOS machine or into DOSBox and run it, the best pegs left are saved next to it in RUBIDO.SAV |
+| MS-DOS, not dithered | DOS_Rubido_ND.zip | the same program with `DITHERING` 0, unzip RUBID_ND.EXE and run it the same way. On a 256 colour screen a shade the palette has no colour for is the nearer one it does have, instead of a pattern of the two |
 | Browser | Web_Rubido.zip | upload it to an itch.io HTML project, or unzip it and open index.html from a web server, the best pegs left are saved in the browser |
 
 The Tufty 2350 has no speaker, the game is silent there. Holding RESET until the rear LEDs are dark puts it to sleep, a front button wakes it up again, with UP and DOWN held as well it goes into shipping mode instead.
