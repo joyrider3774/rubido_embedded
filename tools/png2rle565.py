@@ -19,10 +19,17 @@ import os
 import sys
 from PIL import Image
 
+import onebit
+
 FULLSCREEN_IMAGES = ["background", "credits", "infoeasy", "infohard", "infoveryeasy", "infoveryhard", "titlescreen"]
 WORD_IMAGES = ["credits1", "credits2", "easy1", "hard1", "newgame1", "newgame2", "veryeasy1", "veryhard1"]
 RLE_IMAGES = FULLSCREEN_IMAGES + WORD_IMAGES
 SKIN_PREFIX = {"default": "default", "black_white": "black_white"}
+#The black & white skin shows two colours, so it is not kept as RGB565 but packed one
+#bit a pixel, which is both smaller and quicker to draw, see tools/onebit.py. Its images
+#go out under the same names, the game picks the routines to draw them with at build time
+ONE_BIT_SKINS = {"black_white"}
+COLOR_TRANSPARENT = 0x005F
 MAX_COUNT = 128
 
 
@@ -103,10 +110,18 @@ def main():
         os.makedirs(os.path.join(images_dir, skin), exist_ok=True)
         for name in RLE_IMAGES:
             width, height, pixels = to_rgb565(os.path.join(skins_dir, skin, name + ".png"))
-            data = rle_encode(pixels)
-            assert rle_decode(data, len(pixels)) == pixels
             out = os.path.join(images_dir, skin, name + "_RLE565.h")
-            write_header(out, name + ".png", "%s_%s" % (prefix, name), width, height, data)
+            if skin in ONE_BIT_SKINS:
+                #the word images are drawn with their transparent colour skipped, the full screen
+                #ones have none, and encode() only writes a mask when the picture really uses it
+                data = onebit.encode(pixels, width, height, COLOR_TRANSPARENT)
+                onebit.write_header(out, name + ".png", "%s_%s" % (prefix, name),
+                                    "%s_%s_rle" % (prefix, name), width, height, data,
+                                    "png2rle565.py")
+            else:
+                data = rle_encode(pixels)
+                assert rle_decode(data, len(pixels)) == pixels
+                write_header(out, name + ".png", "%s_%s" % (prefix, name), width, height, data)
             print("%-12s %-12s %6d -> %6d bytes" % (skin, name, len(pixels) * 2, len(data)))
 
 
