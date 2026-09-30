@@ -34,11 +34,15 @@
 #error "the CHGame has the RAM for SCREENBUFFER 0 or 1, an 8 bpp buffer would be 16 KB of its 20 KB"
 #endif
 
-//Only one skin fits in the flash next to the game, see FORCESKIN in defines.h. The black & white
-//skin is the one that is taken: its pictures are packed one bit a pixel rather than kept as
-//RGB565, which is what makes the game fit at all. A build can still ask for another one
-#ifndef FORCESKIN
-#define FORCESKIN skinBlackWhite
+//Only one skin fits in the flash next to the game, see FORCESKIN in defines.h. The four bit one
+//is the one that is taken: it is the black & white art throughout except the background and the
+//peg, which are the default skin's in sixteen colours. Nothing is kept as RGB565, which is what
+//makes the game fit at all. A build can still ask for another one.
+//Not with a 1 bpp buffer: that holds two colours, so the coloured pictures would go through the
+//brightness rule in SetBufferBit and come out as those two anyway, having cost the flash of
+//sixteen. There the black & white skin is left to defines.h to pick
+#if !defined(FORCESKIN) && (SCREENBUFFER != 1)
+#define FORCESKIN skinDefault4b
 #endif
 
 //The pixel loops are put in ram rather than run from flash. The core fetches from flash with wait

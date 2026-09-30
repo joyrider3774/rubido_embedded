@@ -15,9 +15,14 @@
 
 #if ONEBITIMAGES
 
-//what a set and a clear bit stand for, which is what the skin was drawn in
-#define ONEBIT_SET 0xFFFF
-#define ONEBIT_CLEAR 0x0000
+//The two colours a one bit picture is drawn in. They were fixed at white and black; a skin that
+//holds one bit pictures beside colour ones wants to choose, so they are ColorOneBitSet and
+//ColorOneBitClear, set per skin in preloadImages.
+//They belong to commonvars.h and are named again here rather than including it: a file that only
+//draws one bit pictures would otherwise take the whole of the game's state with them
+extern uint16_t ColorOneBitSet, ColorOneBitClear;
+#define ONEBIT_SET ColorOneBitSet
+#define ONEBIT_CLEAR ColorOneBitClear
 //the picture's own size and the mask sit in the first eight bytes
 #define ONEBIT_HEADER 8
 //no picture is wider than the screen, so no row of one is either

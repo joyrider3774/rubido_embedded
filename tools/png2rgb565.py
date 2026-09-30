@@ -12,11 +12,18 @@ import os
 import sys
 from PIL import Image
 
+import fourbit
 import onebit
 
-SKIN_PREFIX = {"default": "default", "black_white": "black_white"}
+SKIN_PREFIX = {"default": "default", "black_white": "black_white", "default_4b": "default_4b"}
 #see png2rle565.py: the black & white skin is packed one bit a pixel
 ONE_BIT_SKINS = {"black_white"}
+#the skins kept four bits a pixel with a palette of their own, see tools/fourbit.py
+FOUR_BIT_SKINS = {"default_4b"}
+#The only pictures of that skin kept in colour. Everything else is lettering or full screen text,
+#which one bit a pixel suits, and a full screen picture at four bits is 8232 bytes however little
+#is in it; those are taken from the black & white art. The game tells them apart by the first byte
+FOUR_BIT_COLOUR = {"background", "peg"}
 #the ones png2rle565.py owns, which must not be written raw as well
 RLE_IMAGES = {"background", "credits", "infoeasy", "infohard", "infoveryeasy",
               "infoveryhard", "titlescreen", "credits1", "credits2", "easy1",
@@ -65,6 +72,18 @@ def convert(src, out, var, skin, keep_raw=False):
 
     Every caller wants that same choice made, so it is made here and not in each of them."""
     width, height, pixels = to_rgb565(src)
+    #A picture of the four bit skin that is not one of the coloured ones is written the way the
+    #black & white skin is. The choice belongs here and not in the callers: every one of them
+    #wants it made the same way, and one that made it itself would get it wrong
+    if (skin in FOUR_BIT_SKINS) and (os.path.basename(src)[:-4] not in FOUR_BIT_COLOUR):
+        skin = "black_white"
+    if skin in FOUR_BIT_SKINS:
+        #Left unpacked. The peg is a sheet, read by the row a tile starts at, and a packed picture
+        #can only be read from its first byte, see rle() in fourbit.py
+        data, worst = fourbit.encode(pixels, width, height, COLOR_TRANSPARENT, False)
+        fourbit.write_header(out, os.path.basename(src), var, var + "_data", width, height, data,
+                             "png2rgb565.py")
+        return width, height
     if skin in ONE_BIT_SKINS:
         data = onebit.encode(pixels, width, height, COLOR_TRANSPARENT, keep_raw)
         onebit.write_header(out, os.path.basename(src), var, var + "_data", width, height, data,

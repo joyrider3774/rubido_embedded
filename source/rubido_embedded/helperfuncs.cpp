@@ -3,6 +3,8 @@
 #include "helperfuncs.h"
 //the one bit pictures of the black & white skin, which the band renderer reads too
 #include "onebitimage.h"
+//the four bit pictures of the default_4b skin, the background and the peg
+#include "fourbitimage.h"
 
 //A row of an image on its way to the display. Where flash is plain memory an evenly placed
 //row is handed over where it lies, otherwise it is copied into the scratch row first. A 16
@@ -58,9 +60,32 @@ static inline const uint16_t* ImageRow(const void* src, uint16_t* scratch, int c
 
 #endif
 
+//The same set again from the mixed skin: the background and the peg in sixteen colours and
+//every other picture the black & white art, see skinDefault4b in defines.h
+#if FORCESKIN == skinDefault4b
+#include "images/default_4b/background_RLE565.h"
+#include "images/default_4b/credits_RLE565.h"
+#include "images/default_4b/infoeasy_RLE565.h"
+#include "images/default_4b/infohard_RLE565.h"
+#include "images/default_4b/infoveryeasy_RLE565.h"
+#include "images/default_4b/infoveryhard_RLE565.h"
+#include "images/default_4b/titlescreen_RLE565.h"
+#include "images/default_4b/credits1_RLE565.h"
+#include "images/default_4b/credits2_RLE565.h"
+#include "images/default_4b/easy1_RLE565.h"
+#include "images/default_4b/hard1_RLE565.h"
+#include "images/default_4b/newgame1_RLE565.h"
+#include "images/default_4b/newgame2_RLE565.h"
+#include "images/default_4b/peg_RGB565_LE.h"
+#include "images/default_4b/veryeasy1_RLE565.h"
+#include "images/default_4b/veryhard1_RLE565.h"
+#endif
+
 //the game draws the images with the sizes in defines.h, a skin has to keep to them
 #if FORCESKIN == skinDefault
 #define SKIN_IMAGE(name) default_##name
+#elif FORCESKIN == skinDefault4b
+#define SKIN_IMAGE(name) default_4b_##name
 #else
 #define SKIN_IMAGE(name) black_white_##name
 #endif
@@ -101,11 +126,28 @@ void preloadImages(void)
             ColorText = SCREEN.color565(0,0,0);
             break;
 #endif
+#if FORCESKIN == skinDefault4b
+        case skinDefault4b:
+            ColorBackground = SCREEN.color565(56,76,216);
+            ColorForeground = SCREEN.color565(0,0,0);
+            ColorText = SCREEN.color565(200,200,200);
+            //The pictures of this skin that are one bit a pixel, drawn beside the coloured ones.
+            //Both are colours the background already holds: it is a field of blues from #2838B8
+            //to #384CD8 over black, and #384CD8 is the brightest of them, so the line art reads as
+            //the same game rather than as another set of pictures.
+            //The blue is the lines and the black the ground, the way the black & white art was
+            //drawn: lettering on a dark page rather than a blue one
+            ColorOneBitSet = SCREEN.color565(255,255,255);
+            ColorOneBitClear = SCREEN.color565(0,0,0);
+            break;
+#endif
 #if FORCESKIN == skinBlackWhite
         case skinBlackWhite:
             ColorBackground = SCREEN.color565(0,0,0);
             ColorForeground = SCREEN.color565(255,255,255);
             ColorText = SCREEN.color565(255,255,255);
+            ColorOneBitSet = SCREEN.color565(255,255,255);
+            ColorOneBitClear = SCREEN.color565(0,0,0);
             break;
 #endif
     }
@@ -191,6 +233,17 @@ void printText(int16_t x, int16_t y, const char* str, uint16_t color, uint16_t b
 //that only takes 32 bit reads, so the rows are read here with PLATFORM_READ_BYTES
 void drawImagePart(int x, int y, int sx, int sy, int w, int h, const uint8_t* data, int dataWidth)
 {
+#if FOURBITIMAGES
+    //A mixed skin: the peg is four bits a pixel and everything else one, and a picture says which
+    //it is in its first byte. See FOURBIT_MAGIC and ONEBIT_MAGIC
+    if (data && (PLATFORM_READ_BYTE(data) == FOURBIT_MAGIC))
+    {
+        (void)dataWidth;
+        //this one draws every pixel of the part, there is nothing to leave out
+        drawImage4BitPart(x, y, sx, sy, w, h, data, false);
+        return;
+    }
+#endif
 #if ONEBITIMAGES
     //the skin's pictures carry their own width, the one passed in is the RGB565 path's
     (void)dataWidth;
@@ -269,6 +322,17 @@ void drawImage(int x, int y, int w, int h, const uint8_t* data)
 //image data through plain pointers, but PROGMEM on the ESP8266 is flash that only takes 32 bit reads
 void drawImageRLEPart(int x, int y, int sx, int sy, int w, int h, const uint8_t* data, int dataWidth, int dataHeight, bool transparent)
 {
+#if FOURBITIMAGES
+    //A mixed skin: the background is four bits a pixel and the other full screen pictures one,
+    //and a picture says which it is in its first byte. See FOURBIT_MAGIC and ONEBIT_MAGIC
+    if (data && (PLATFORM_READ_BYTE(data) == FOURBIT_MAGIC))
+    {
+        (void)dataWidth;
+        (void)dataHeight;
+        drawImage4BitPart(x, y, sx, sy, w, h, data, transparent);
+        return;
+    }
+#endif
 #if ONEBITIMAGES
     //the skin's pictures carry their own size, the ones passed in are the RGB565 path's
     (void)dataWidth;

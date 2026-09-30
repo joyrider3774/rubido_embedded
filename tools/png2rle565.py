@@ -19,12 +19,17 @@ import os
 import sys
 from PIL import Image
 
+import fourbit
 import onebit
 
 FULLSCREEN_IMAGES = ["background", "credits", "infoeasy", "infohard", "infoveryeasy", "infoveryhard", "titlescreen"]
 WORD_IMAGES = ["credits1", "credits2", "easy1", "hard1", "newgame1", "newgame2", "veryeasy1", "veryhard1"]
 RLE_IMAGES = FULLSCREEN_IMAGES + WORD_IMAGES
-SKIN_PREFIX = {"default": "default", "black_white": "black_white"}
+SKIN_PREFIX = {"default": "default", "black_white": "black_white", "default_4b": "default_4b"}
+#the skins kept four bits a pixel with a palette of their own, and the only pictures of such a
+#skin kept in colour. See png2rgb565.py, which holds the same two and the reason for them
+FOUR_BIT_SKINS = {"default_4b"}
+FOUR_BIT_COLOUR = {"background", "peg"}
 #The black & white skin shows two colours, so it is not kept as RGB565 but packed one
 #bit a pixel, which is both smaller and quicker to draw, see tools/onebit.py. Its images
 #go out under the same names, the game picks the routines to draw them with at build time
@@ -106,6 +111,16 @@ def convert(src, out, var, skin):
     """Writes the header for one full screen picture into out, in the format its skin is stored
     in. Every caller wants that same choice made, so it is made here and not in each of them."""
     width, height, pixels = to_rgb565(src)
+    #see the same lines in png2rgb565.py: only the coloured ones are kept four bits a pixel
+    if (skin in FOUR_BIT_SKINS) and (os.path.basename(src)[:-4] not in FOUR_BIT_COLOUR):
+        skin = "black_white"
+    if skin in FOUR_BIT_SKINS:
+        #Left unpacked: drawBackgroundPart draws a piece of the background at a time, and a packed
+        #picture would have to be decoded from its first byte to reach the row that piece starts at
+        data, worst = fourbit.encode(pixels, width, height, COLOR_TRANSPARENT, False)
+        fourbit.write_header(out, os.path.basename(src), var, var + "_rle", width, height, data,
+                             "png2rle565.py")
+        return width, height, len(data)
     if skin in ONE_BIT_SKINS:
         data = onebit.encode(pixels, width, height, COLOR_TRANSPARENT)
         onebit.write_header(out, os.path.basename(src), var, var + "_rle", width, height, data,

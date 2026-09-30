@@ -6,6 +6,7 @@
 #include "savestate.h"
 
 uint16_t ColorBackground, ColorForeground, ColorText;
+uint16_t ColorOneBitSet, ColorOneBitClear;
 
 const uint8_t* imgBackground, *imgCredits, *imgInfoEasy, *imgInfoHard, *imgInfoVeryEasy,
 	*imgInfoVeryHard, *imgTitleScreen;

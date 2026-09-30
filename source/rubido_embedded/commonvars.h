@@ -18,6 +18,8 @@ typedef struct SaveData SaveData;
 
 //the colours of the skin, set by preloadImages
 extern uint16_t ColorBackground, ColorForeground, ColorText;
+//what a set and a clear bit of a one bit picture are drawn in, see ONEBIT_SET in onebitimage.h
+extern uint16_t ColorOneBitSet, ColorOneBitClear;
 
 //the images of the skin, set by preloadImages. The full screen ones are run length encoded
 extern const uint8_t* imgBackground, *imgCredits, *imgInfoEasy, *imgInfoHard, *imgInfoVeryEasy,
